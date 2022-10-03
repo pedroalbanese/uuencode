@@ -1,4 +1,4 @@
-Copyright (c) 2020 Blake Williams <code@shabbyrobe.org>
+Copyright (c) 2020 Blake Williams <code@shabbyrobe.org>  
 Copyright (c) 2022 Pedro Albanese <pedroalbanese@hotmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

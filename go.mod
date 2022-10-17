@@ -1,3 +1,3 @@
-module github.com/pedroalbanese/uue
+module github.com/pedroalbanese/uuencode
 
 go 1.12

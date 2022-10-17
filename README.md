@@ -4,7 +4,7 @@
 [![GitHub downloads](https://img.shields.io/github/downloads/pedroalbanese/uuencode/total.svg?logo=github&logoColor=white)](https://github.com/pedroalbanese/uuencode/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pedroalbanese/uuencode)](https://goreportcard.com/report/github.com/pedroalbanese/uuencode)
 [![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/pedroalbanese/uuencode)](https://golang.org)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/pedroalbanese/uuencode)](https://github.com/pedroalbanese/uuencode/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/pedroalbanese/uuencode)](https://github.com/pedroalbanese/uuencode/releases)  
 UUEncode is a tool that converts to and from uuencoding
 
 ## Usage

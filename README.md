@@ -7,7 +7,7 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/pedroalbanese/uuencode)](https://github.com/pedroalbanese/uuencode/releases)  
 ### UUEncode is a tool that converts to and from uuencoding
 
-## UUE format
+## Format
 <pre>UUE format:
   permission mode _______       ______ file name to be given to decoded file
                          |     |
@@ -15,7 +15,7 @@
                   M;2XN+BXN+R\N+B\O+BXN+BXN+R\N+B\O+BXO+RXO+RXN+B\ON+B\O+BXN
   encoded data __ M"AM;-#LV2"`@("`@+R`@7`H;6S$[,3%("AM;,CLQ,4@@("`@<("\*&ULS
                   `
-  end line ______ end<*pre>
+  end line ______ end</pre>
   
 ## Usage
 <pre>

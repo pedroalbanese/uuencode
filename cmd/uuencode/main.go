@@ -19,17 +19,16 @@ var (
 func main() {
 	flag.Parse()
 
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage of", os.Args[0]+":")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-
 	if *dec == false {
 		var err error
-		infile, err := os.Open(*ifile)
-		if err != nil {
-			log.Println(err)
+		var infile *os.File
+		if *ifile == "-" || *ifile == "" {
+			infile = os.Stdin
+		} else {
+			infile, err = os.Open(*ifile)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 		var outfile *os.File
 		if *ofile == "-" || *ofile == "" {
@@ -40,7 +39,11 @@ func main() {
 				log.Println(err)
 			}
 		}
-		uw := uuencode.NewWriter(outfile, *ifile, 0664)
+		info, err := infile.Stat()
+		if err != nil {
+			log.Fatal(err)
+		}
+		uw := uuencode.NewWriter(outfile, *ifile, info.Mode())
 		if _, err = io.Copy(uw, infile); err != nil {
 			return
 		}
@@ -48,9 +51,15 @@ func main() {
 			return
 		}
 	} else {
-		file, err := os.Open(*ifile)
-		if err != nil {
-			log.Println(err)
+		var err error
+		var infile *os.File
+		if *ifile == "-" || *ifile == "" {
+			infile = os.Stdin
+		} else {
+			infile, err = os.Open(*ifile)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 		var outfile *os.File
 		if *ofile == "-" || *ofile == "" {
@@ -61,7 +70,7 @@ func main() {
 				log.Println(err)
 			}
 		}
-		ur := uuencode.NewReader(file, nil)
+		ur := uuencode.NewReader(infile, nil)
 		_, err = io.Copy(outfile, ur)
 		if err != nil {
 			log.Fatal(err)

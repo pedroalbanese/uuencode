@@ -22,7 +22,7 @@
 Usage of uuencode:
   -d    Decode instead of Encode
   -f string
-        Target file</pre>pre>
+        Target file</pre>
  
 ## License
 This project is licensed under the MIT License. 

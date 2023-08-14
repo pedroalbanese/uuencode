@@ -23,8 +23,6 @@ Usage of uuencode:
   -d    Decode instead of Encode
   -f string
         Target file
-  -o string
-        Output file</pre>
  
 ## License
 This project is licensed under the MIT License. 

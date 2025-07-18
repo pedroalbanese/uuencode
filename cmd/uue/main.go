@@ -92,6 +92,6 @@ func main() {
 		}
 
 		// Exibe informações no stderr
-		fmt.Fprintf(os.Stderr, "Decoded: %s (mode: %03o)\n", filename, mode)
+		fmt.Fprintf(os.Stderr, "file: %s, mode: %03o\n", filename, mode)
 	}
 }

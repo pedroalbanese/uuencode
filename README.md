@@ -25,6 +25,6 @@ Usage of uuencode:
         Target file</pre>
  
 ## License
-This project is licensed under the MIT License. 
+This project is licensed under the ISC License. 
 
 **Copyright (c) 2022 Pedro Albanese <pedroalbanese@hotmail.com>**

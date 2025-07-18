@@ -26,6 +26,5 @@ Usage of uuencode:
  
 ## License
 This project is licensed under the MIT License. 
- 
-**Copyright (c) 2020 Blake Williams <code@shabbyrobe.org>**  
+
 **Copyright (c) 2022 Pedro Albanese <pedroalbanese@hotmail.com>**

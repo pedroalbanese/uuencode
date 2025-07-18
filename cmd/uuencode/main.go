@@ -1,20 +1,18 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/pedroalbanese/uuencode"
 )
 
 var (
 	dec   = flag.Bool("d", false, "Decode instead of Encode")
-	ifile = flag.String("f", "", "Target file")
+	ifile = flag.String("f", "", "Target file (use '-' or empty for stdin)")
 )
 
 func main() {
@@ -26,79 +24,74 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *dec == false {
-		var err error
-		var infile *os.File
-		infile, err = os.Open(*ifile)
+	if !*dec {
+		// Modo de codificação (UUencode)
+		infile, err := os.Open(*ifile)
 		if err != nil {
-			log.Println(err)
+			log.Fatal(err)
 		}
+		defer infile.Close()
+
 		info, err := infile.Stat()
 		if err != nil {
 			log.Fatal(err)
 		}
-		uw := uuencode.NewWriter(os.Stdout, *ifile, info.Mode())
-		if _, err = io.Copy(uw, infile); err != nil {
-			return
+
+		// Usa o nome do arquivo de entrada no cabeçalho UUencode
+		uuw := uuencode.NewWriter(os.Stdout, *ifile, info.Mode())
+		if _, err := io.Copy(uuw, infile); err != nil {
+			log.Fatal(err)
 		}
-		if err := uw.Flush(); err != nil {
-			return
+		if err := uuw.Flush(); err != nil {
+			log.Fatal(err)
 		}
 	} else {
-		var err error
+		// Modo de decodificação (UUdecode)
 		var infile *os.File
+		var err error
+		
 		if *ifile == "-" || *ifile == "" {
 			infile = os.Stdin
 		} else {
 			infile, err = os.Open(*ifile)
 			if err != nil {
-				log.Println(err)
+				log.Fatal(err)
 			}
+			defer infile.Close()
 		}
-		ur := uuencode.NewReader(infile, nil)
 
-		outFileName, err := GetFileName(*ifile)
+		// Cria o decoder UUencode
+		uur := uuencode.NewReader(infile, nil)
+
+		// Obtém o nome do arquivo do cabeçalho UUencode
+		filename, err := uur.File()
 		if err != nil {
-			fmt.Println("Error:", err)
+			log.Fatal("Error getting filename from UUencoded data:", err)
 		}
-		outfile, err := os.Create(outFileName)
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = io.Copy(outfile, ur)
+
+		// Cria o arquivo de saída
+		outfile, err := os.Create(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-		f, _ := ur.File()
-		m, _ := ur.Mode()
-		if err := outfile.Chmod(m); err != nil {
-			log.Println(err)
+		defer outfile.Close()
+
+		// Decodifica e escreve no arquivo de saída
+		if _, err := io.Copy(outfile, uur); err != nil {
+			log.Fatal(err)
 		}
-		fmt.Fprintf(os.Stderr, "file: %s, mode: %03o\n", f, m)
-	}
-}
 
-func GetFileName(fileName string) (string, error) {
-	file, err := os.Open(fileName)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "begin ") {
-			fields := strings.Fields(line)
-			if len(fields) >= 3 {
-				return fields[2], nil
-			} else {
-				return "", fmt.Errorf("Invalid 'begin' line format")
+		// Obtém e define as permissões do arquivo
+		mode, err := uur.Mode()
+		if err != nil {
+			log.Println("Warning: could not get file mode from UUencoded data:", err)
+		} else {
+			if err := outfile.Chmod(mode); err != nil {
+				log.Println("Warning: could not set file mode:", err)
 			}
 		}
+
+		// Exibe informações no stderr
+		fmt.Fprintf(os.Stderr, "Decoded: %s (mode: %03o)\n", filename, mode)
 	}
-	if err := scanner.Err(); err != nil {
-		return "", err
-	}
-	return "", fmt.Errorf("No 'begin' line found")
 }

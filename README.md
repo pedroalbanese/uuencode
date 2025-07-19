@@ -20,9 +20,7 @@
 ## Usage
 <pre>
 Usage of uuencode:
-  -d    Decode instead of Encode
-  -f string
-        Target file</pre>
+  -d    Decode instead of Encode</pre>
  
 ## License
 This project is licensed under the ISC License. 

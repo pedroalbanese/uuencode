@@ -282,3 +282,74 @@ func (r *Reader) Mode() (os.FileMode, error) {
 	}
 	return r.fileInfo.Mode, nil
 }
+
+// MultiWriter para múltiplos arquivos
+type MultiWriter struct {
+	w io.Writer
+}
+
+func NewMultiWriter(w io.Writer) *MultiWriter {
+	return &MultiWriter{w: w}
+}
+
+func (mw *MultiWriter) WriteFile(filename string, mode os.FileMode, r io.Reader) error {
+	ww := NewWriter(mw.w, filename, mode)
+	if _, err := io.Copy(ww, r); err != nil {
+		return err
+	}
+	return ww.Flush()
+}
+
+func (mw *MultiWriter) Close() error {
+	return nil
+}
+
+// MultiReader para múltiplos arquivos
+type MultiReader struct {
+	r       *bufio.Reader
+	current *Reader
+}
+
+func NewMultiReader(r io.Reader) *MultiReader {
+	return &MultiReader{
+		r: bufio.NewReader(r),
+	}
+}
+
+func (mr *MultiReader) Next() (*FileInfo, io.Reader, error) {
+	for {
+		// Primeiro verifica se temos um arquivo atual em progresso
+		if mr.current != nil {
+			// Se o arquivo atual terminou, limpe-o antes de procurar o próximo
+			if mr.current.eof {
+				mr.current = nil
+				continue
+			}
+			return mr.current.fileInfo, mr.current, nil
+		}
+
+		// Procura pelo próximo cabeçalho "begin"
+		line, err := mr.r.ReadString('\n')
+		if err != nil {
+			return nil, nil, err
+		}
+
+		line = strings.TrimRight(line, "\r\n")
+		if strings.HasPrefix(line, "begin ") {
+			fields := strings.Fields(line)
+			if len(fields) >= 3 {
+				mode, err := strconv.ParseUint(fields[1], 8, 32)
+				if err != nil {
+					return nil, nil, fmt.Errorf("invalid file mode: %v", err)
+				}
+
+				mr.current = NewReader(mr.r, &FileInfo{
+					Name: fields[2],
+					Mode: os.FileMode(mode),
+				})
+				mr.current.headerRead = true
+				return mr.current.fileInfo, mr.current, nil
+			}
+		}
+	}
+}

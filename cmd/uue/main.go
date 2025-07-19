@@ -6,13 +6,12 @@ import (
 	"io"
 	"log"
 	"os"
-
-	"github.com/pedroalbanese/uuencode"
+	
+	"github.com/pedroalbanese/uuencode
 )
 
 var (
-	dec   = flag.Bool("d", false, "Decode instead of Encode")
-	ifile = flag.String("f", "", "Target file (use '-' or empty for stdin)")
+	dec = flag.Bool("d", false, "Decode instead of Encode")
 )
 
 func main() {
@@ -25,73 +24,67 @@ func main() {
 	}
 
 	if !*dec {
-		// Modo de codificação (UUencode)
-		infile, err := os.Open(*ifile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer infile.Close()
+		// Modo codificação
+		mw := uuencode.NewMultiWriter(os.Stdout)
+		defer mw.Close()
 
-		info, err := infile.Stat()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Usa o nome do arquivo de entrada no cabeçalho UUencode
-		uuw := uuencode.NewWriter(os.Stdout, *ifile, info.Mode())
-		if _, err := io.Copy(uuw, infile); err != nil {
-			log.Fatal(err)
-		}
-		if err := uuw.Flush(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		// Modo de decodificação (UUdecode)
-		var infile *os.File
-		var err error
-		
-		if *ifile == "-" || *ifile == "" {
-			infile = os.Stdin
-		} else {
-			infile, err = os.Open(*ifile)
+		for _, filename := range flag.Args() {
+			file, err := os.Open(filename)
 			if err != nil {
 				log.Fatal(err)
 			}
-			defer infile.Close()
-		}
 
-		// Cria o decoder UUencode
-		uur := uuencode.NewReader(infile, nil)
-
-		// Obtém o nome do arquivo do cabeçalho UUencode
-		filename, err := uur.File()
-		if err != nil {
-			log.Fatal("Error getting filename from UUencoded data:", err)
-		}
-
-		// Cria o arquivo de saída
-		outfile, err := os.Create(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer outfile.Close()
-
-		// Decodifica e escreve no arquivo de saída
-		if _, err := io.Copy(outfile, uur); err != nil {
-			log.Fatal(err)
-		}
-
-		// Obtém e define as permissões do arquivo
-		mode, err := uur.Mode()
-		if err != nil {
-			log.Println("Warning: could not get file mode from UUencoded data:", err)
-		} else {
-			if err := outfile.Chmod(mode); err != nil {
-				log.Println("Warning: could not set file mode:", err)
+			info, err := file.Stat()
+			if err != nil {
+				file.Close()
+				log.Fatal(err)
 			}
-		}
 
-		// Exibe informações no stderr
-		fmt.Fprintf(os.Stderr, "file: %s, mode: %03o\n", filename, mode)
+			if err := mw.WriteFile(filename, info.Mode(), file); err != nil {
+				file.Close()
+				log.Fatal(err)
+			}
+			file.Close()
+		}
+	} else {
+		// Modo decodificação - lê do primeiro argumento não-flag
+		if flag.NArg() == 0 {
+			log.Fatal("No input file specified for decoding")
+		}
+		inputFile := flag.Arg(0)
+
+		file, err := os.Open(inputFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+
+		mr := uuencode.NewMultiReader(file)
+
+		for {
+			fileInfo, reader, err := mr.Next()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			outFile, err := os.Create(fileInfo.Name)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if _, err := io.Copy(outFile, reader); err != nil {
+				outFile.Close()
+				log.Fatal(err)
+			}
+
+			if err := outFile.Chmod(fileInfo.Mode); err != nil {
+				log.Printf("Warning: could not set mode for %s: %v", fileInfo.Name, err)
+			}
+			outFile.Close()
+			fmt.Printf("file: %s mode: %03o\n", fileInfo.Name, fileInfo.Mode)
+		}
 	}
 }

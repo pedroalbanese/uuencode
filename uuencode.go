@@ -106,7 +106,7 @@ func (w *Writer) Flush() error {
 			return err
 		}
 	}
-	_, err := w.w.Write([]byte("`\nend\n"))
+	_, err := w.w.Write([]byte("`\nend\n\n"))
 	return err
 }
 

@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	
-	"github.com/pedroalbanese/uuencode
+	"github.com/pedroalbanese/uuencode"
 )
 
 var (

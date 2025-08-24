@@ -21,7 +21,9 @@
 <pre>
 Usage of uuencode:
   -d    Decode instead of Encode</pre>
- 
+
+Check also: https://github.com/pedroalbanese/xxencode
+
 ## License
 This project is licensed under the ISC License. 
 
